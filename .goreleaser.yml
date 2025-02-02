@@ -1,0 +1,104 @@
+version: 2
+
+env:
+  - CGO_ENABLED=0
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - binary: tflint-ruleset-ibm
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+    ldflags:
+      - -s -w
+      - -X github.com/uibm/tflint-ruleset-ibm/project.Version={{.Version}}
+    hooks:
+      post:
+        - mkdir -p ./dist/raw
+        - cp "{{.Path}}" "./dist/raw/{{.ProjectName}}_{{.Version}}_{{.Os}}_{{.Arch}}"
+        - mv "./dist/raw/{{.Path}}" "./dist/raw/{{.ProjectName}}_{{.Version}}_{{.Os}}_{{.Arch}}"
+
+archives:
+  - format: zip
+    name_template: >-
+      {{.ProjectName}}_
+      {{-.Version}}_
+      {{-.Os}}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else }}{{.Arch }}{{ end }}
+    files:
+      - README.md
+      - LICENSE
+      - rules/docs/**/*
+      - go.mod
+      - go.sum
+      - dist/raw/*
+
+checksum:
+  name_template: 'checksums.txt'
+  algorithm: sha256
+
+nfpms:
+  - license: MIT
+    maintainer: Ujjwal Kumar
+    homepage: https://github.com/uibm/tflint-ruleset-ibm
+    description: TFLint ruleset for IBM
+    formats:
+      - deb
+      - rpm
+
+signs:
+  - cmd: cosign
+    args:
+      - sign-blob
+      - '--output-certificate=${certificate}'
+      - '--output-signature=${signature}'
+      - '${artifact}'
+      - --yes
+    signature: '${artifact}.sig'
+    certificate: '${artifact}.pem'
+    artifacts: checksum
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - Merge pull request
+      - Merge branch
+
+release:
+  github:
+    owner: uibm
+    name: tflint-ruleset-ibm
+  draft: true
+  prerelease: auto
+  mode: replace
+  header: |
+    ## tflint-ruleset-ibm {{.Version}}
+
+    See the [CHANGELOG](CHANGELOG.md) for more details.
+
+    ### Installation
+    ```sh
+    mkdir -p ~/.tflint.d/plugins
+    curl -L https://github.com/uibm/tflint-ruleset-ibm/releases/download/{{.Version}}/tflint-ruleset-ibm_{{.Version}}_$(uname -s | tr '[:upper:]' '[:lower:]')_x86_64.zip -o tflint-ruleset-ibm.zip 
+    unzip tflint-ruleset-ibm.zip -d ~/.tflint.d/plugins
+    ```
+
+  footer: |
+    **Full Changelog**: https://github.com/uibm/tflint-ruleset-ibm/compare/{{.PreviousTag}}...{{.Tag}}
+
+snapshot:
+  name_template: "0.1.0-dev"
