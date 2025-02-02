@@ -24,22 +24,22 @@ builds:
       - -X github.com/uibm/tflint-ruleset-ibm/project.Version={{.Version}}
     hooks:
       post:
-        - mkdir -p./dist/raw
+        - mkdir -p ./dist/raw
         - cp "{{.Path}}" "./dist/raw/{{.ProjectName}}_{{.Version}}_{{.Os}}_{{.Arch}}"
         - mv "./dist/raw/{{.Path}}" "./dist/raw/{{.ProjectName}}_{{.Version}}_{{.Os}}_{{.Arch}}"
 
 archives:
   - format: zip
     name_template: >-
-      {{.ProjectName }}_
-      {{-.Version }}_
-      {{-.Os }}_
-      {{- if eq.Arch "amd64" }}x86_64
+      {{.ProjectName}}_
+      {{-.Version}}_
+      {{-.Os}}_
+      {{- if eq .Arch "amd64" }}x86_64
       {{- else }}{{.Arch }}{{ end }}
     files:
       - README.md
       - LICENSE
-      - rules/docs/**/* # Correct path!
+      - rules/docs/**/*
       - go.mod
       - go.sum
       - dist/raw/*
@@ -47,7 +47,15 @@ archives:
 checksum:
   name_template: 'checksums.txt'
   algorithm: sha256
-  artifacts: nfpms
+
+nfpms:
+  - license: MIT
+    maintainer: Ujjwal Kumar
+    homepage: https://github.com/uibm/tflint-ruleset-ibm
+    description: TFLint ruleset for IBM
+    formats:
+      - deb
+      - rpm
 
 signs:
   - cmd: cosign
@@ -78,19 +86,19 @@ release:
   prerelease: auto
   mode: replace
   header: |
-    ## tflint-ruleset-ibm {{.Version }}
+    ## tflint-ruleset-ibm {{.Version}}
 
     See the [CHANGELOG](CHANGELOG.md) for more details.
 
     ### Installation
     ```sh
     mkdir -p ~/.tflint.d/plugins
-    curl -L [https://github.com/uibm/tflint-ruleset-ibm/releases/download/](https://github.com/uibm/tflint-ruleset-ibm/releases/download/){{.Version }}/tflint-ruleset-ibm_{{.Version }}_$(uname -s | tr '[:upper:]' '[:lower:]')_x86_64.zip -o tflint-ruleset-ibm.zip 
+    curl -L https://github.com/uibm/tflint-ruleset-ibm/releases/download/{{.Version}}/tflint-ruleset-ibm_{{.Version}}_$(uname -s | tr '[:upper:]' '[:lower:]')_x86_64.zip -o tflint-ruleset-ibm.zip 
     unzip tflint-ruleset-ibm.zip -d ~/.tflint.d/plugins
     ```
 
   footer: |
-    **Full Changelog**: https://github.com/uibm/tflint-ruleset-ibm/compare/{{.PreviousTag }}...{{.Tag }}
+    **Full Changelog**: https://github.com/uibm/tflint-ruleset-ibm/compare/{{.PreviousTag}}...{{.Tag}}
 
 snapshot:
-  name_template: "{{ incpatch.Version }}-dev"
+  name_template: "{{incpatch .Version}}-dev"
