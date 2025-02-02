@@ -1,4 +1,4 @@
-version: 2
+version: 1
 env:
   - CGO_ENABLED=0
 
@@ -19,19 +19,15 @@ builds:
         - mkdir -p ./dist/raw
         - cp "{{ .Path }}" "./dist/raw/{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
 
-archives:
-  - id: zip
-    name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
-    format: zip
-    files:
-      - README.md
-      - LICENSE
+archive:
+  name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
+  format: zip
+  files:
+    - README.md
+    - LICENSE
 
 checksum:
   name_template: 'checksums.txt'
-
-changelog:
-  disable: true
 
 release:
   github:
