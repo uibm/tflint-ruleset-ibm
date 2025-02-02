@@ -21,8 +21,11 @@ jobs:
         with:
           go-version: '1.23'
 
-      - name: Install goimports and gopls
-        run: go install golang.org/x/tools/gopls@latest golang.org/x/tools/goimports@latest
+      - name: Install gopls
+        run: go install golang.org/x/tools/gopls@latest
+
+      - name: Install goimports
+        run: go install golang.org/x/tools/cmd/goimports@latest
 
       - name: Build
         run: make build
