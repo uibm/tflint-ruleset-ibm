@@ -101,4 +101,4 @@ release:
     **Full Changelog**: https://github.com/uibm/tflint-ruleset-ibm/compare/{{.PreviousTag}}...{{.Tag}}
 
 snapshot:
-  name_template: "{{incpatch .Version}}-dev"
+  name_template: "0.1.0-dev"
