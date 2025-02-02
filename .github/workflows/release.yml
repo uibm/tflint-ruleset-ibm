@@ -56,8 +56,12 @@ jobs:
         go-version-file: 'go.mod'
         cache: true
 
+    - run: git fetch --force --tags
+
     - uses: goreleaser/goreleaser-action@v5
       with:
-        args: release
+        distribution: goreleaser
+        version: v1.24.0
+        args: release --clean
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

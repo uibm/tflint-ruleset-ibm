@@ -1,4 +1,5 @@
-version: 1
+version: 2
+
 env:
   - CGO_ENABLED=0
 
@@ -19,20 +20,17 @@ builds:
         - mkdir -p ./dist/raw
         - cp "{{ .Path }}" "./dist/raw/{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
 
-archive:
-  name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
-  format: zip
-  files:
-    - README.md
-    - LICENSE
+archives:
+  - format: zip
+    name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - README.md
+      - LICENSE
 
 checksum:
   name_template: 'checksums.txt'
 
 release:
-  github:
-    owner: uibm
-    name: tflint-ruleset-ibm
   draft: true
 
 snapshot:

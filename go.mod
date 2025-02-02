@@ -1,8 +1,8 @@
 module github.com/uibm/tflint-ruleset-ibm
 
-go 1.23.3
+go 1.23
 
-toolchain go1.23.4
+toolchain go1.23.5
 
 require (
 	github.com/IBM/go-sdk-core/v5 v5.18.5
@@ -12,7 +12,6 @@ require (
 )
 
 require (
-
 	// TFLint dependencies
 	github.com/agext/levenshtein v1.2.2 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
@@ -52,7 +51,7 @@ require (
 	go.mongodb.org/mongo-driver v1.17.2 // indirect
 	golang.org/x/crypto v0.32.0 // indirect
 	golang.org/x/mod v0.22.0 // indirect
-	golang.org/x/net v0.34.0 // indirect
+	golang.org/x/net v0.34.0
 	golang.org/x/sync v0.10.0 // indirect
 	golang.org/x/sys v0.29.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
