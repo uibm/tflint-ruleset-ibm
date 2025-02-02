@@ -1,56 +1,63 @@
-name: release
+name: Release
 
 on:
-  push:
-    tags:
-      - "v*"
+  pull_request:
+    types:
+      - closed
+    branches:
+      - main
 
 permissions:
   contents: write
 
 jobs:
+  create-release:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Create tag
+      run: |
+        # Determine version bump
+        VERSION_BUMP="patch"
+        PR_TITLE="${{ github.event.pull_request.title }}"
+        
+        if [[ "$PR_TITLE" == *"feat"* ]]; then
+          VERSION_BUMP="minor"
+        elif [[ "$PR_TITLE" == *"breaking"* ]]; then
+          VERSION_BUMP="major"
+        fi
+        
+        # Get latest tag or start from 0.1.0
+        LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "0.0.0")
+        
+        # Bump version
+        NEW_VERSION=$(npx semver@7 $LATEST_TAG -i $VERSION_BUMP)
+        
+        # Create and push tag
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+        git tag v$NEW_VERSION
+        git push origin v$NEW_VERSION
+
   goreleaser:
+    needs: create-release
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.23'
+    - uses: actions/setup-go@v5
+      with:
+        go-version-file: 'go.mod'
+        cache: true
 
-      - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v5
-        with:
-          distribution: goreleaser
-          version: latest
-          args: release --clean
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  # Separate job for snapshots
-  snapshot:
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.23'
-
-      - name: Run GoReleaser (snapshot)
-        uses: goreleaser/goreleaser-action@v5
-        with:
-          distribution: goreleaser
-          version: latest
-          args: release --clean --snapshot
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - uses: goreleaser/goreleaser-action@v5
+      with:
+        args: release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
