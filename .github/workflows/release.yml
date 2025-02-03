@@ -1,65 +1,43 @@
-name: Release
+name: release
 
 on:
-  pull_request:
-    types:
-      - closed
+  push:
     branches:
-      - main
+      - '!*'
+    tags:
+      - v*.*.*
 
 permissions:
   contents: write
+  id-token: write
+  attestations: write
 
 jobs:
-  create-release:
-    if: github.event.pull_request.merged == true
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-
-    - name: Create tag
-      run: |
-        # Determine version bump
-        VERSION_BUMP="patch"
-        PR_TITLE="${{ github.event.pull_request.title }}"
-        
-        if [[ "$PR_TITLE" == *"feat"* ]]; then
-          VERSION_BUMP="minor"
-        elif [[ "$PR_TITLE" == *"breaking"* ]]; then
-          VERSION_BUMP="major"
-        fi
-        
-        # Get latest tag or start from 0.1.0
-        LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "0.0.0")
-        
-        # Bump version
-        NEW_VERSION=$(npx semver@7 $LATEST_TAG -i $VERSION_BUMP)
-        
-        # Create and push tag
-        git config user.name github-actions
-        git config user.email github-actions@github.com
-        git tag v$NEW_VERSION
-        git push origin v$NEW_VERSION
-
   goreleaser:
-    needs: create-release
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-    - uses: actions/setup-go@v5
-      with:
-        go-version-file: 'go.mod'
-        cache: true
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+          cache: true
 
-    - run: git fetch --force --tags
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3
 
-    - uses: goreleaser/goreleaser-action@v6
-      with:
-        args: release --clean
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          version: v2.6.1
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: 'dist/checksums.txt'
