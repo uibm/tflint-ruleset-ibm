@@ -12,44 +12,53 @@ deps:
 
 .PHONY: fmt
 fmt:
+	@echo "Formatting code..."
 	@gofmt -w $(GOFMT_FILES)
 	@goimports -w $(GOFMT_FILES)
 
 .PHONY: lint
 lint:
-	golangci-lint run ./...
+	@echo "Linting code..."
+	@golangci-lint run ./...
 
 .PHONY: test
 test: deps
-	go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
+	@echo "Running tests..."
+	@go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
 
 .PHONY: integration
 integration: build
-	go test -v ./testing/integration/...
+	@echo "Running integration tests..."
+	@go test -v ./testing/integration/...
 
 .PHONY: build
 build: deps fmt
-	go build -o dist/tflint-ruleset-ibm
+	@echo "Building..."
+	@go build -o dist/tflint-ruleset-ibm
 
 .PHONY: install
 install: build
-	mkdir -p ~/.tflint.d/plugins
-	cp dist/tflint-ruleset-ibm ~/.tflint.d/plugins/
+	@echo "Installing..."
+	@mkdir -p ~/.tflint.d/plugins
+	@cp dist/tflint-ruleset-ibm ~/.tflint.d/plugins/
 
 .PHONY: clean
 clean:
-	rm -rf dist/
-	rm -f coverage.txt
+	@echo "Cleaning..."
+	@rm -rf dist/
+	@rm -f coverage.txt
 
 .PHONY: release
 release:
-	git tag $(NEXT_VERSION)
-	git push origin $(NEXT_VERSION)
-	goreleaser release --rm-dist
+	@echo "Releasing..."
+	@git tag $(NEXT_VERSION)
+	@git push origin $(NEXT_VERSION)
+	@goreleaser release --rm-dist
 
 .PHONY: docs
 docs:
-	go run ./tools/docs-gen
+	@echo "Generating docs..."
+	@go run ./tools/docs-gen
 
 .PHONY: all
 all: clean deps fmt lint test build
