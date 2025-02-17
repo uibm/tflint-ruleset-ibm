@@ -6,7 +6,7 @@ toolchain go1.23.5
 
 require (
 	github.com/IBM/go-sdk-core/v5 v5.18.5
-	github.com/IBM/vpc-go-sdk v0.64.0
+	github.com/IBM/vpc-go-sdk v0.64.1
 	github.com/hashicorp/hcl/v2 v2.23.0
 	github.com/terraform-linters/tflint-plugin-sdk v0.22.0
 )
